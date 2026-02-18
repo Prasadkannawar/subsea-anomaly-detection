@@ -1,0 +1,25 @@
+# Core ML/AI Libraries
+ultralytics>=8.1.0
+torch>=2.0.0
+torchvision>=0.15.0
+opencv-python-headless>=4.8.0  # Headless for server environments
+Pillow>=10.0.0
+
+# Web Application
+streamlit>=1.30.0
+watchdog>=3.0.0  # Specific for Streamlit auto-reload
+
+# PDF Generation
+reportlab>=4.0.0
+
+# Utilities
+numpy>=1.24.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+
+# Video Processing
+moviepy>=1.0.3
+ffmpeg-python>=0.2.0
+
+# Deployment (Optional)
+# gunicorn>=20.1.0

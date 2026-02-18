@@ -1,0 +1,27 @@
+
+# Data Augmentation Configuration for Underwater Detection
+# Add these parameters when training YOLOv8
+
+# Geometric Augmentations
+hsv_h: 0.015      # HSV-Hue augmentation (fraction)
+hsv_s: 0.7        # HSV-Saturation augmentation (fraction)
+hsv_v: 0.4        # HSV-Value augmentation (fraction)
+degrees: 10.0     # Image rotation (+/- deg)
+translate: 0.1    # Image translation (+/- fraction)
+scale: 0.5        # Image scale (+/- gain)
+shear: 0.0        # Image shear (+/- deg)
+perspective: 0.0  # Image perspective (+/- fraction), range 0-0.001
+flipud: 0.0       # Flip up-down probability
+fliplr: 0.5       # Flip left-right probability (50% for underwater symmetry)
+
+# Color Augmentations (simulating underwater conditions)
+mosaic: 1.0       # Mosaic augmentation probability
+mixup: 0.1        # MixUp augmentation probability
+copy_paste: 0.0   # Copy-paste augmentation probability
+
+# Blur (simulating water turbidity)
+blur: 0.0         # Apply blur with kernel size = blur (use carefully)
+
+# Training Command Example:
+# yolo detect train data=data.yaml model=yolov8s.pt epochs=150 imgsz=640 \
+#   hsv_h=0.015 hsv_s=0.7 hsv_v=0.4 fliplr=0.5 mosaic=1.0 mixup=0.1

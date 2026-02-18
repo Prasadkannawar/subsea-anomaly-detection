@@ -1,0 +1,29 @@
+# YOLOv8 Dataset Configuration for Underwater Anomaly Detection
+# This file defines the dataset structure for training YOLOv8 models
+
+# Path to dataset root (relative to this file or absolute path)
+path: ./dataset  # dataset root directory
+
+# Path to train and validation image directories (relative to 'path')
+train: images/train  # training images
+val: images/val      # validation images
+
+# Number of classes
+nc: 4  # number of classes
+
+# Class names for underwater hull inspection
+names:
+  0: corrosion        # rust or corrosion on hull/infrastructure
+  1: marine_growth    # biofouling (barnacles, algae, marine organisms)
+  2: debris           # floating debris or attached foreign objects
+  3: healthy_surface  # clean, undamaged surface (for contrast learning)
+
+# Optional: Test set
+# test: images/test  # test images (optional)
+
+# Notes:
+# - Place your training images in dataset/images/train/
+# - Place your validation images in dataset/images/val/
+# - Place corresponding label files (.txt) in dataset/labels/train/ and dataset/labels/val/
+# - Label files should have the same name as image files but with .txt extension
+# - Each line in label file: <class_id> <x_center> <y_center> <width> <height> (normalized 0-1)
