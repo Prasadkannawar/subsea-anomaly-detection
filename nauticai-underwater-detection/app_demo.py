@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 from pathlib import Path
 import tempfile
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 import uuid
 
@@ -289,7 +289,29 @@ def main():
         if st.button("🔍 Run Analysis (Demo Mode)", use_container_width=True):
             st.session_state['analysis_done'] = True
             st.session_state['inspection_id'] = f"NTI-{datetime.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
-        
+            
+            # Create mock detections immediately and save to session state
+            mock_detections = [
+                {'class_name': 'corrosion', 'confidence': 0.925, 'bbox': [120, 45, 250, 180]},
+                {'class_name': 'marine_growth', 'confidence': 0.883, 'bbox': [300, 120, 450, 280]},
+                {'class_name': 'corrosion', 'confidence': 0.75, 'bbox': [50, 300, 150, 400]}, 
+                {'class_name': 'marine_growth', 'confidence': 0.82, 'bbox': [400, 350, 500, 450]}, 
+            ]
+            
+            # Additional Info needed for saving
+            risk_score = 0.65  # Example score
+            
+            mock_results = {
+                'inspection_id': st.session_state['inspection_id'],
+                'risk_score': risk_score,
+                'risk_level': "🟠 MEDIUM RISK",
+                'detections_count': len(mock_detections),
+                'timestamp': datetime.now().isoformat(),
+                'detections': mock_detections
+            }
+            # Save to session state so Cloud Sync can access it
+            st.session_state['results'] = mock_results
+
         # Only show results if analysis is done
         if st.session_state['analysis_done']:
             
@@ -303,10 +325,50 @@ def main():
             
             with col_result1:
                 st.markdown("#### 🖼️ Annotated Output")
-                st.info("💡 In production mode, AI-detected anomalies with bounding boxes would appear here")
                 if file_extension.lower() in ['.jpg', '.jpeg', '.png']:
-                    image = Image.open(active_input) if camera_image else Image.open(uploaded_file)
-                    st.image(image, use_container_width=True)
+                    # Load original image
+                    if camera_image:
+                        image = Image.open(camera_image)
+                    elif uploaded_file:
+                        image = Image.open(uploaded_file)
+                    else:
+                        image = Image.open("path/to/demo_image.jpg") # Fallback (shouldn't happen given inputs)
+
+                    # Create a drawing context
+                    # Use a copy to avoid modifying original
+                    annotated_image = image.copy()
+                    draw = ImageDraw.Draw(annotated_image)
+                    
+                    # Get results from session state
+                    current_results = st.session_state.get('results', {})
+                    detections = current_results.get('detections', [])
+                    
+                    # Draw mock boxes
+                    try:
+                        # Simple font loading (fallback to default if arial unavailable)
+                        try:
+                            font = ImageFont.truetype("arial.ttf", 20)
+                        except IOError:
+                            font = ImageFont.load_default()
+
+                        for det in detections:
+                            bbox = det['bbox'] # [x1, y1, x2, y2]
+                            label = f"{det['class_name'].title()} {det['confidence']:.1%}"
+                            
+                            # Draw Box (Yellow)
+                            draw.rectangle(bbox, outline="yellow", width=3)
+                            
+                            # Draw Label Background
+                            text_bbox = draw.textbbox((bbox[0], bbox[1]), label, font=font)
+                            draw.rectangle((text_bbox[0], text_bbox[1]-25, text_bbox[2]+5, text_bbox[1]), fill="yellow")
+                            
+                            # Draw Text (Black)
+                            draw.text((bbox[0]+2, bbox[1]-25), label, fill="black", font=font)
+                            
+                    except Exception as e:
+                        st.error(f"Error drawing boxes: {e}")
+
+                    st.image(annotated_image, caption="AI Detection Visualization (Simulated)", use_container_width=True)
             
             with col_result2:
                 st.markdown("#### 📈 Detection Metrics (Demo)")
@@ -450,6 +512,45 @@ def main():
         - 📊 Risk Assessment: ✅ Configured
         """)
     
+    # -------------------------------------------------------------------------
+    # Sidebar Footer - Cloud Sync
+    # -------------------------------------------------------------------------
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### ☁️ Cloud Sync")
+    
+    # Initialize connection
+    from utils.supabase_client import init_supabase, upload_inspection
+    supabase = init_supabase()
+    
+    if supabase:
+        st.sidebar.success("Connected to Supabase")
+        if st.sidebar.button("💾 Save Inspection to Cloud"):
+            if 'results' in st.session_state and st.session_state['results']:
+                with st.spinner("Uploading to Supabase..."):
+                    # Get image bytes
+                    file_bytes = None
+                    if uploaded_file is not None:
+                         # Reset pointer for file upload
+                        uploaded_file.seek(0)
+                        file_bytes = uploaded_file.read()
+                    elif camera_image is not None:
+                        file_bytes = camera_image.getvalue()
+
+                    if file_bytes:
+                         success, msg = upload_inspection(
+                            supabase, 
+                            file_bytes, 
+                            st.session_state['results']
+                        )
+                         if success:
+                             st.sidebar.success(msg)
+                         else:
+                             st.sidebar.error(f"Error: {msg}")
+            else:
+                st.sidebar.warning("Run analysis first!")
+    else:
+        st.sidebar.info("Supabase not configured. Add secrets to enable cloud sync.")
+
     # Footer
     st.markdown("---")
     st.markdown("""
