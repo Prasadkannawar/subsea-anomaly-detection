@@ -1,25 +1,12 @@
-# Core ML/AI Libraries
 ultralytics>=8.1.0
 opencv-python-headless>=4.8.0  # Use headless for cloud deployment (no GUI)
 Pillow>=10.0.0
-
-# Web Application
 streamlit>=1.30.0
-watchdog>=3.0.0  # Enhances Streamlit file monitoring
-
-# PDF Generation
+watchdog>=3.0.0
 reportlab>=4.0.0
-
-# Database / Backend
 supabase>=2.0.0
-
-# Utilities
 numpy>=1.24.0
 pandas>=2.0.0
-matplotlib>=3.7.0  # Required by Ultralytics
-
-# Video Processing (Optional but good to have)
+matplotlib>=3.7.0
 moviepy>=1.0.3
 ffmpeg-python>=0.2.0
-
-# Note: 'torch' and 'torchvision' are automatically installed by ultralytics
